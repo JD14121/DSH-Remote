@@ -1,0 +1,183 @@
+{
+  "version": "1.0.0",
+  "phase": "R8A",
+  "name": "DSH Remote — Mobile Chat Design Tokens",
+  "description": "The semantic token layer for the DSH Remote mobile client. Code depends on token NAMES only; the values below are the design-time defaults and may be re-themed without touching component contracts. No credential, machine path, API secret or runtime token may ever be added to this file.",
+
+  "breakpoints": {
+    "mobileSmall": 360,
+    "mobilePrimary": 390,
+    "mobileLarge": 430,
+    "tablet": 768,
+    "comment": "360-479 single-column mobile; 480-767 large mobile; >=768 tablet with a persistent session rail. 390x844 is the primary design viewport."
+  },
+
+  "viewport": {
+    "primary": { "width": 390, "height": 844 },
+    "validated": [
+      { "name": "mobileSmall", "width": 360, "height": 800, "layout": "single-column" },
+      { "name": "mobilePrimary", "width": 390, "height": 844, "layout": "single-column" },
+      { "name": "mobileLarge", "width": 430, "height": 932, "layout": "single-column" },
+      { "name": "tablet", "width": 768, "height": 1024, "layout": "side-rail + chat" }
+    ]
+  },
+
+  "spacing": {
+    "s1": 4,
+    "s2": 8,
+    "s3": 12,
+    "s4": 16,
+    "s5": 20,
+    "s6": 24,
+    "s7": 32,
+    "s8": 40,
+    "comment": "The complete spacing scale. No component may use a value outside this scale."
+  },
+
+  "radius": {
+    "r1": 8,
+    "r2": 12,
+    "r3": 16,
+    "r4": 20,
+    "pill": 999
+  },
+
+  "typography": {
+    "families": {
+      "sans": "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+      "mono": "ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, monospace"
+    },
+    "scale": {
+      "caption": { "size": 12, "lineHeight": 16, "weight": 400, "family": "sans" },
+      "body-small": { "size": 13, "lineHeight": 18, "weight": 400, "family": "sans" },
+      "body": { "size": 15, "lineHeight": 22, "weight": 400, "family": "sans" },
+      "body-strong": { "size": 15, "lineHeight": 22, "weight": 600, "family": "sans" },
+      "subtitle": { "size": 17, "lineHeight": 24, "weight": 600, "family": "sans" },
+      "title": { "size": 20, "lineHeight": 28, "weight": 600, "family": "sans" },
+      "display-small": { "size": 24, "lineHeight": 32, "weight": 700, "family": "sans" },
+      "code": { "size": 13, "lineHeight": 20, "weight": 400, "family": "mono" }
+    },
+    "rules": {
+      "minBodyPx": 14,
+      "comment": "14px is the floor for any body text. Primary chat body is 15px, which is inside the required 15-16px band."
+    }
+  },
+
+  "color": {
+    "bg": {
+      "primary": "#141416",
+      "secondary": "#171719"
+    },
+    "surface": {
+      "primary": "#1A1A1C",
+      "secondary": "#252527",
+      "hover": "#303032",
+      "sunken": "#141416",
+      "raised": "#2C2C2E",
+      "comment": "Neutral charcoal surfaces sampled from the DSH Desktop chat and composer reference. The composer sits on the raised #2C2C2E surface over the #141416 chat canvas."
+    },
+    "text": {
+      "primary": "#F1F1F1",
+      "secondary": "#B9BBC0",
+      "muted": "#89898C",
+      "inverse": "#141416"
+    },
+    "border": {
+      "default": "#343436",
+      "strong": "#454547",
+      "subtle": "#28282A",
+      "comment": "R8G: `subtle` exists so a region boundary can be stated without the full weight of `default`. Three weights let message, composer and rail separate by degrees rather than by one hard line."
+    },
+    "accent": {
+      "primary": "#4E83F4",
+      "hover": "#6D98F5"
+    },
+    "status": {
+      "success": "#3FB27F",
+      "warning": "#D9A441",
+      "danger": "#E5484D",
+      "info": "#5B8DEF"
+    },
+    "message": {
+      "user": "#2A3B5C",
+      "assistant": "#1A1F2A",
+      "system": "#1E2430"
+    },
+    "overlay": "rgba(8, 10, 14, 0.62)",
+    "focus": "#7BA4F5",
+    "comment": "Dark-first palette for a restrained technical client. Every status colour has a paired icon/text cue; colour alone never conveys state (see accessibility)."
+  },
+
+  "touchTarget": {
+    "min": 44,
+    "minWidth": 44,
+    "minHeight": 44,
+    "composerSend": 44,
+    "iconButton": 44,
+    "listRow": 56,
+    "codeCopyButton": 44,
+    "comment": "Any primary interactive element is at least 44x44 CSS px, including the code-block copy button."
+  },
+
+  "message": {
+    "maxWidthPercent": 85,
+    "assistantCodeBlockWidth": "100%",
+    "userAlign": "end",
+    "assistantAlign": "start",
+    "systemAlign": "center",
+    "groupGapPx": 22,
+    "bubblePaddingPx": 14,
+    "comment": "User and assistant bubbles cap at 85% of the content width. Assistant code blocks may use the full available content width and scroll horizontally rather than widen the page. R8G: groupGapPx was 12 and bubblePaddingPx was 12 — both raised so consecutive messages read as distinct groups and bubbles are not cramped at 360px."
+  },
+
+  "elevation": {
+    "none": "none",
+    "raised": "0 1px 2px rgba(0, 0, 0, 0.32)",
+    "overlay": "0 12px 32px rgba(0, 0, 0, 0.45)",
+    "comment": "R8G: a restrained two-step shadow scale. Depth is stated once per region — a raised composer seat and a floating overlay — rather than decorating every surface. No blur-heavy or coloured shadows."
+  },
+  "layout": {
+    "topBarHeight": 56,
+    "composerMinHeight": 56,
+    "composerMaxHeightPercent": 40,
+    "drawerWidth": 300,
+    "tabletRailWidth": 300,
+    "bannerHeight": 40,
+    "contentMaxWidthTablet": 720,
+    "safeAreaRespect": true,
+    "comment": "The composer grows with content up to 40% of the viewport height, then scrolls internally so the timeline keeps usable space."
+  },
+
+  "motion": {
+    "fast": 120,
+    "base": 180,
+    "slow": 260,
+    "reducedMotion": {
+      "spinner": "static progress glyph",
+      "streamCursor": "static caret",
+      "drawer": "no slide; appear in place",
+      "toast": "no translate; opacity only",
+      "comment": "prefers-reduced-motion: reduce removes transform and looping motion; state remains conveyed by icon and text."
+    },
+    "allowed": ["drawer slide", "small spinner", "stream cursor", "toast transition", "reconnect indicator"],
+    "forbidden": ["heavy parallax", "large decorative animation", "auto-playing background motion"]
+  },
+
+  "accessibility": {
+    "minContrastNormalText": 4.5,
+    "minContrastLargeText": 3.0,
+    "focusRingWidth": 2,
+    "focusRingOffset": 2,
+    "statusCue": "icon + text + colour",
+    "comment": "Focus is always visible and never removed. Status is never conveyed by colour alone."
+  },
+
+  "zIndex": {
+    "banner": 10,
+    "composer": 20,
+    "drawer": 40,
+    "dialog": 60,
+    "toast": 80,
+    "comment": "Ordered layers; no component may invent a higher value."
+  }
+}

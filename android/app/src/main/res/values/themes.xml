@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Matches the shell's own background so there is no colour flash before the page paints.
+      The theme is intentionally bare: this harness must not restyle the WebView content in any
+      way, and no action bar is wanted because the shell draws its own top bar.
+    -->
+    <style name="Theme.DshRemote" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#0F1115</item>
+        <item name="android:statusBarColor">#0F1115</item>
+        <item name="android:navigationBarColor">#0F1115</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <!--
+          The window is laid out between the system bars rather than behind them, so the shell's
+          bottom edge (the composer) is never hidden by the navigation bar. The page keeps
+          `viewport-fit=cover`, so it can still reason about its own safe areas.
+        -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+</resources>

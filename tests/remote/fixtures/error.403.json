@@ -1,0 +1,22 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "any unary endpoint",
+    "transport": "POST /api/<namespace>/<method>",
+    "note": "Host/Origin fence rejection. Triggered live by a request whose Origin did not match the request authority, and separately by sec-fetch-site: cross-site. The fence runs BEFORE browser authentication, so a bad Origin is 403 even with no credential.",
+    "observedLive": true,
+    "httpStatus": 403,
+    "responseBody": "forbidden",
+    "triggers": [
+      "Origin header present and not equal to the request authority",
+      "Sec-Fetch-Site: cross-site"
+    ],
+    "expectedAdapterCode": "AUTH_REJECTED"
+  },
+  "response": {
+    "status": 403,
+    "body": "forbidden"
+  }
+}

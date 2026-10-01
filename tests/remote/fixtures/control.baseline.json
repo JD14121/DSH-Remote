@@ -1,0 +1,93 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/control",
+    "transport": "WS /api/remote.mux (logical stream)",
+    "frame": "mux item whose value is the opening SessionControlFrame baseline",
+    "note": "session/control is Host-wide and takes no session selector: one baseline reports queues/jobs/projections for every session. DSH documents control baselines as process-local state, so they cannot reconstruct jobs across a Host restart.",
+    "request": {
+      "type": "open",
+      "streamId": "s1",
+      "endpoint": "session/control",
+      "payload": {
+        "args": {}
+      }
+    },
+    "fieldsRedactedOrReplaced": [
+      "every sessionId replaced with a deterministic fixture id",
+      "job ids replaced",
+      "projection values reduced to a representative subset"
+    ]
+  },
+  "muxFrame": {
+    "type": "item",
+    "streamId": "s1",
+    "value": {
+      "type": "baseline",
+      "value": {
+        "queues": {
+          "session-00000000-0000-0000-0000-000000000001": [
+            {
+              "id": "message-fixture-1",
+              "placement": "queued",
+              "rpcId": "client-message-id-fixture-1",
+              "message": {
+                "id": "message-fixture-1",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "synthetic queued prompt"
+                  }
+                ]
+              }
+            }
+          ],
+          "session-00000000-0000-0000-0000-000000000002": []
+        },
+        "jobs": {
+          "session-00000000-0000-0000-0000-000000000001": [
+            {
+              "id": "job-fixture-1",
+              "kind": "bash",
+              "label": "synthetic job",
+              "status": "running",
+              "startedAt": 1789800000000
+            }
+          ],
+          "session-00000000-0000-0000-0000-000000000002": []
+        },
+        "projections": {
+          "session-00000000-0000-0000-0000-000000000001": {
+            "asOfSeq": 42,
+            "values": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 2
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "queueFrame": {
+    "type": "item",
+    "streamId": "s1",
+    "value": {
+      "type": "queue",
+      "sessionId": "session-00000000-0000-0000-0000-000000000001",
+      "items": []
+    }
+  },
+  "jobsFrame": {
+    "type": "item",
+    "streamId": "s1",
+    "value": {
+      "type": "jobs",
+      "sessionId": "session-00000000-0000-0000-0000-000000000001",
+      "jobs": []
+    }
+  }
+}

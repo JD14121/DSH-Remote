@@ -1,0 +1,18 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "any unary endpoint",
+    "transport": "POST /api/<namespace>/<method>",
+    "note": "HTTP channel-level rejection, observed live against an unauthenticated request to 127.0.0.1:3080. Body is the literal channel text, not a JSON envelope.",
+    "observedLive": true,
+    "httpStatus": 401,
+    "responseBody": "unauthorized",
+    "expectedAdapterCode": "AUTH_REJECTED"
+  },
+  "response": {
+    "status": 401,
+    "body": "unauthorized"
+  }
+}

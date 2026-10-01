@@ -1,0 +1,125 @@
+{
+  "_fixture": {
+    "kind": "negative-test-only",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "POST /api/session/list",
+    "note": "NOT a live capture. Hand-constructed negative cases proving R1 §6.1's rule that a 200 response carrying anything other than a well-formed server-response must fail visibly rather than be treated as success.",
+    "cases": [
+      {
+        "name": "not-json",
+        "why": "HTTP 200 with a body that is not JSON.",
+        "httpStatus": 200,
+        "body": "<html>not json</html>",
+        "expectedAdapterCode": "WIRE_PROTOCOL_ERROR"
+      },
+      {
+        "name": "missing-type",
+        "why": "JSON object with no `type` discriminator.",
+        "httpStatus": 200,
+        "body": {
+          "rpcId": "fixture-list-1",
+          "result": {
+            "ok": true,
+            "value": {
+              "items": []
+            }
+          }
+        },
+        "expectedAdapterCode": "WIRE_PROTOCOL_ERROR"
+      },
+      {
+        "name": "wrong-type",
+        "why": "`type` is not `server-response`.",
+        "httpStatus": 200,
+        "body": {
+          "type": "client-request",
+          "rpcId": "fixture-list-1",
+          "result": {
+            "ok": true,
+            "value": {
+              "items": []
+            }
+          }
+        },
+        "expectedAdapterCode": "WIRE_PROTOCOL_ERROR"
+      },
+      {
+        "name": "rpcId-mismatch",
+        "why": "The response correlates to a different call. Accepting it would let one caller consume another's result.",
+        "httpStatus": 200,
+        "body": {
+          "type": "server-response",
+          "rpcId": "some-other-rpc-id",
+          "result": {
+            "ok": true,
+            "value": {
+              "items": []
+            }
+          }
+        },
+        "expectedAdapterCode": "WIRE_PROTOCOL_ERROR"
+      },
+      {
+        "name": "result-not-object",
+        "why": "`result` is a string instead of the discriminated union.",
+        "httpStatus": 200,
+        "body": {
+          "type": "server-response",
+          "rpcId": "fixture-list-1",
+          "result": "ok"
+        },
+        "expectedAdapterCode": "WIRE_PROTOCOL_ERROR"
+      },
+      {
+        "name": "ok-without-value",
+        "why": "`ok: true` but no `value`.",
+        "httpStatus": 200,
+        "body": {
+          "type": "server-response",
+          "rpcId": "fixture-list-1",
+          "result": {
+            "ok": true
+          }
+        },
+        "expectedAdapterCode": "WIRE_PROTOCOL_ERROR"
+      },
+      {
+        "name": "error-without-code",
+        "why": "`ok: false` with an error object that has no code.",
+        "httpStatus": 200,
+        "body": {
+          "type": "server-response",
+          "rpcId": "fixture-list-1",
+          "result": {
+            "ok": false,
+            "error": {
+              "message": "something failed"
+            }
+          }
+        },
+        "expectedAdapterCode": "WIRE_PROTOCOL_ERROR"
+      },
+      {
+        "name": "list-missing-required-summary-field",
+        "why": "A structurally valid envelope whose SessionListValue omits a required SessionSummary field.",
+        "httpStatus": 200,
+        "body": {
+          "type": "server-response",
+          "rpcId": "fixture-list-1",
+          "result": {
+            "ok": true,
+            "value": {
+              "items": [
+                {
+                  "sessionId": "session-00000000-0000-0000-0000-000000000001"
+                }
+              ]
+            }
+          }
+        },
+        "expectedAdapterCode": "WIRE_PROTOCOL_ERROR"
+      }
+    ]
+  }
+}

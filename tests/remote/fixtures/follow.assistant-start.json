@@ -1,0 +1,29 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/follow",
+    "transport": "WS /api/remote.mux (logical stream)",
+    "frame": "assistant-stream start",
+    "note": "Opens one presentation attempt. `startedAfterSeq` is the durable cursor the attempt began after, not a message index.",
+    "fieldsRedactedOrReplaced": [
+      "attemptId replaced with a deterministic synthetic id"
+    ]
+  },
+  "muxFrame": {
+    "type": "item",
+    "streamId": "s1",
+    "value": {
+      "type": "assistant-stream",
+      "frame": {
+        "type": "start",
+        "attemptId": "session-00000000-0000-0000-0000-000000000001:1",
+        "revision": 1,
+        "startedAfterSeq": 43,
+        "turn": 1,
+        "step": 2
+      }
+    }
+  }
+}

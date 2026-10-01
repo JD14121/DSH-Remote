@@ -1,0 +1,97 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/follow",
+    "transport": "WS /api/remote.mux (logical stream)",
+    "frame": "mux item whose value is the opening SessionFollowFrame snapshot",
+    "request": {
+      "type": "open",
+      "streamId": "s1",
+      "endpoint": "session/follow",
+      "payload": {
+        "args": {
+          "request": {
+            "address": {
+              "kind": "session",
+              "sessionId": "session-00000000-0000-0000-0000-000000000001"
+            },
+            "maxMessages": 50,
+            "assistantStream": true
+          }
+        }
+      }
+    },
+    "fieldsRedactedOrReplaced": [
+      "sessionId replaced",
+      "header.id replaced",
+      "createdAt replaced with a fixed epoch",
+      "cwd replaced with a generic path",
+      "assistantStream.attemptId replaced",
+      "projections reduced to a representative subset"
+    ]
+  },
+  "muxFrame": {
+    "type": "item",
+    "streamId": "s1",
+    "value": {
+      "type": "snapshot",
+      "header": {
+        "version": 3,
+        "id": "session-00000000-0000-0000-0000-000000000001",
+        "createdAt": 1789600000000,
+        "cwd": "D:\\workspace",
+        "isSeeded": false,
+        "delegationDepth": 0,
+        "agentPreset": "cordis"
+      },
+      "cursor": 42,
+      "records": [
+        {
+          "type": "event",
+          "event": {
+            "type": "assistant/message",
+            "seq": 41,
+            "time": 1789800000000,
+            "data": {
+              "turn": 1,
+              "step": 1,
+              "message": "synthetic assistant message"
+            }
+          }
+        },
+        {
+          "type": "event",
+          "event": {
+            "type": "turn/end",
+            "seq": 42,
+            "time": 1789800000100,
+            "data": {
+              "turn": 1,
+              "reason": "completed"
+            }
+          }
+        }
+      ],
+      "hasMore": true,
+      "projections": {
+        "sessionStats": {
+          "turns": 1,
+          "steps": 1
+        }
+      },
+      "assistantStream": {
+        "revision": 1,
+        "activeAttempt": {
+          "attemptId": "session-00000000-0000-0000-0000-000000000001:1",
+          "startedAfterSeq": 41,
+          "turn": 1,
+          "step": 1,
+          "nextIndex": 3,
+          "streamLen": 1
+        }
+      }
+    }
+  }
+}

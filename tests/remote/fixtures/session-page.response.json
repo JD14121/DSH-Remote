@@ -1,0 +1,89 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/page",
+    "transport": "POST /api/session/page",
+    "request": {
+      "type": "client-request",
+      "rpcId": "fixture-page-1",
+      "method": "session/page",
+      "payload": {
+        "args": {
+          "request": {
+            "address": {
+              "kind": "session",
+              "sessionId": "session-00000000-0000-0000-0000-000000000001"
+            },
+            "throughSeq": 42,
+            "maxMessages": 2
+          }
+        }
+      }
+    },
+    "fieldsRedactedOrReplaced": [
+      "sessionId replaced",
+      "message bodies replaced with short synthetic text",
+      "tool arguments replaced with a synthetic value",
+      "timestamps replaced with fixed epochs",
+      "source.rpcId values replaced"
+    ]
+  },
+  "response": {
+    "type": "server-response",
+    "rpcId": "fixture-page-1",
+    "result": {
+      "ok": true,
+      "value": {
+        "records": [
+          {
+            "type": "event",
+            "event": {
+              "type": "user/message",
+              "seq": 40,
+              "time": 1789800000000,
+              "data": {
+                "message": "synthetic user message one",
+                "source": {
+                  "kind": "user",
+                  "rpcId": "fixture-request-id-1"
+                }
+              }
+            }
+          },
+          {
+            "type": "event",
+            "event": {
+              "type": "tool/call",
+              "seq": 41,
+              "time": 1789800000500,
+              "data": {
+                "turn": 1,
+                "step": 1,
+                "callId": "call-1",
+                "name": "fs_read",
+                "arguments": "{\"path\":\"README.md\"}"
+              }
+            }
+          },
+          {
+            "type": "event",
+            "event": {
+              "type": "tool/result",
+              "seq": 42,
+              "time": 1789800000600,
+              "data": {
+                "turn": 1,
+                "step": 1,
+                "message": "synthetic tool output",
+                "callId": "call-1"
+              }
+            }
+          }
+        ],
+        "hasMore": true
+      }
+    }
+  }
+}

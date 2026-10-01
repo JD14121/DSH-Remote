@@ -1,0 +1,86 @@
+# R9-RELAY-02 — bridge PRODUCTION CONFIG TEMPLATE (PC side)
+#
+# STATUS: TEMPLATE / NOT APPLIED.
+#
+# This template mirrors the bridge options that were accepted and tested in R9-RELAY-01A/01C. It does
+# not change the accepted bridge design; it only names the production paths and limits.
+#
+# Placeholders (supplied by the operator at deploy time; never committed):
+#   R9_PUBLIC_HOST   the production FQDN
+#
+# Secrets are referenced by PATH only. No private key, no token and no credential value appears here.
+
+[bridge]
+# Loopback ONLY. This is not configurable to a public address, and a non-loopback bind is treated as
+# a startup failure by the bridge itself.
+bind_host = "127.0.0.1"
+bind_port = 9446
+
+# The upstream is FIXED. It is never derived from the client request, and a client can never choose a
+# different destination. 9445 is the Gateway; 3081/3080 are DSH and are never targets.
+upstream_host = "127.0.0.1"
+upstream_port = 9445
+
+# External authority. Exactly this one value is accepted in Host/SNI/Origin.
+public_host = "R9_PUBLIC_HOST"
+origin = "https://R9_PUBLIC_HOST"
+
+[tls]
+server_cert_path = "C:\\ProgramData\\r9-relay\\tls\\https-server.crt"
+server_key_path = "C:\\ProgramData\\r9-relay\\tls\\https-server.key"
+
+# Mandatory client certificate: a client without one must never receive any application byte.
+require_client_certificate = true
+reject_unauthorized = true
+min_version = "TLSv1.2"
+
+# Session tickets are disabled via SSL_OP_NO_TICKET. `session_timeout = 0` is retained only as
+# defence in depth and is NOT the control. There is no server-side session cache.
+disable_session_tickets = true
+session_timeout_seconds = 0
+
+# The Android-client issuer is the ONLY client trust anchor. The public CA, the frpc issuer and the
+# frps issuer are NOT client trust anchors for browser traffic.
+android_client_issuer_path = "C:\\ProgramData\\r9-relay\\trust\\android-issuer\\android-issuer-ca.crt"
+
+[identity_policy]
+# Durable, fail-closed. A missing policy grants nothing; a corrupt policy is a hard failure rather
+# than an empty allowlist. Denylist is checked BEFORE the allowlist and wins.
+allowlist_path = "C:\\ProgramData\\r9-relay\\state\\android-enrollment.json"
+denylist_path = "C:\\ProgramData\\r9-relay\\state\\android-denylist.json"
+fingerprint_binding = true
+generation_is_monotonic = true
+atomic_commit_then_activate = true
+
+[request_policy]
+# The accepted R9-RELAY-01 policy, unchanged.
+http_version = "HTTP/1.1"
+single_canonical_authority = true
+require_origin_for_unsafe_methods = true
+require_origin_for_upgrade = true
+fetch_metadata_is_not_authentication = true
+strip_forwarding_headers = true
+fix_upstream_host = true
+retry_writes = false
+
+[static_ui]
+artifact_path = "C:\\ProgramData\\r9-relay\\ui"
+manifest_path = "C:\\ProgramData\\r9-relay\\ui\\manifest.json"
+content_security_policy = "default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+
+[limits]
+# PROPOSED production values. The fixture-tested values are in parentheses. Not frozen; performance
+# remains unmeasured until a later relay phase.
+handshake_timeout_ms = 5000        # fixture 5000
+max_header_bytes = 16384           # fixture 16384
+header_timeout_ms = 5000           # fixture 5000
+max_connections = 128              # fixture 64  — one phone plus reconnects
+max_connections_per_identity = 16  # fixture 8   — WSS plus parallel API calls
+idle_timeout_ms = 30000            # fixture 30000
+pre_auth_lifetime_ms = 5000        # fixture 5000
+upstream_timeout_ms = 15000        # fixture 15000
+
+[time]
+# Certificate validity depends on clock correctness. A skewed clock fails validation and remote access
+# STOPS. Widening validity windows to work around skew is forbidden.
+require_synchronised_clock = true

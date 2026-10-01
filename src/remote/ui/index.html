@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DeepSeek Harness</title>
+<meta name="color-scheme" content="dark">
+<!--
+  An inline data: favicon. Without one the browser requests /favicon.ico and logs a 404, which
+  made a clean page load look like it had failed a request during mobile diagnosis. `img-src`
+  already allows `data:`, so no CSP change is needed.
+-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='6' fill='%23151922'/%3E%3Cpath d='M4 16.8c.5-5.4 5.1-9.7 10.8-9.7 3.4 0 6.3 1.5 8.1 4.1l2.2-2.1v5.2L22 15.5c-1.2 4.1-4.4 6.7-9.4 6.7-3.8 0-6.8-1.7-8.6-4.5L2 19l1-4.3z' fill='%23E8EAF0'/%3E%3C/svg%3E">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<link rel="stylesheet" href="./styles/tokens.css">
+<link rel="stylesheet" href="./styles/base.css">
+<link rel="stylesheet" href="./styles/layout.css">
+<link rel="stylesheet" href="./styles/components.css">
+<link rel="stylesheet" href="./styles/responsive.css">
+<link rel="stylesheet" href="./vendor/katex/katex.min.css">
+<link rel="license" href="./vendor/marked/LICENSE">
+<link rel="license" href="./vendor/katex/LICENSE">
+<link rel="license" href="./vendor/dompurify/LICENSE">
+</head>
+<body>
+<!--
+  The entire UI is built from one component tree driven by fixture state.
+  There is no per-screen markup: see src/remote/ui/state/fixture-state.js.
+-->
+<div id="app"></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

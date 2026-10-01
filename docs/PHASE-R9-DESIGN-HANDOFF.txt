@@ -1,0 +1,1024 @@
+R9 Design Handoff — Codex Temporary Ownership
+0. Ownership / authority
+Project:
+D:\DSH-testing\dsh-remote-gateway
+
+Current primary owner:
+DSH
+
+Temporary owner for this phase:
+Codex
+
+Codex authority:
+R9 ARCHITECTURE / SECURITY / DEPLOYMENT DESIGN ONLY
+
+Codex is NOT currently authorized to:
+- implement R9
+- modify production networking
+- install/configure SSH
+- install/configure Tailscale
+- bind Gateway to LAN
+- add TLS certificates
+- change firewall rules
+- build a production APK
+- modify frozen R7/R8 contracts
+- start a remote-access production deployment
+After the R9 design package is reviewed and accepted:
+implementation ownership returns to DSH
+unless the human operator explicitly assigns implementation to Codex.
+1. Current project state — source of truth
+Latest accepted state:
+R0–R6:
+ACCEPTED
+
+R7:
+PRODUCTION ACCEPTED
+
+R7 Gate A:
+ACCEPTED
+
+R7 Gate B:
+ACCEPTED
+
+R7-KNOWN-LIMITATION-01:
+CLOSED
+
+R7 production port contract:
+FROZEN
+
+R8:
+ACCEPTED — LOCAL LOOPBACK ACCEPTANCE COMPLETE
+
+R9:
+NOT IMPLEMENTED
+DESIGN MAY BEGIN
+R7D is the latest authority for production port configuration.
+Do not infer configuration from historical supervisor.json.
+Current frozen production roles are:
+Operator interactive DSH:
+127.0.0.1:3080
+
+Supervised production DSH:
+127.0.0.1:3081
+
+Gateway:
+127.0.0.1:9445
+3081 is now the explicit supervised production port; stale runtime state cannot override it, and an occupied production port causes startup refusal rather than kill/adoption/fallback. PHASE-R7D-REPORT.mdMD
+The final production smoke used the real resident launcher, explicit --port 3081, real Gateway, real DSH, authenticated health and adapter enumeration, followed by ControlChannel shutdown with both 3081 and 9445 released. PHASE-R7D-REPORT.mdMD
+2. Product goal
+The phone is a chat client, not a remote terminal.
+The architecture is:
+Phone
+  = Chat Client
+
+PC
+  = DSH Server
+
+Secure Remote Transport
+  = R9 responsibility
+
+Remote Gateway
+  = stable application protocol boundary
+
+DSH
+  = agent runtime
+The desired remote experience is:
+Android phone
+→ GPT-like DSH Remote UI
+→ secure remote transport
+→ PC Gateway
+→ supervised DSH
+Do not turn the product into:
+SSH terminal UI
+remote desktop
+shell console
+generic PC control app
+SSH or an overlay network may be used as transport infrastructure, but they must remain invisible implementation details beneath the chat client.
+3. Existing local architecture
+R8 currently proves this development path:
+Android Debug APK
+→ WebView
+→ http://localhost:8099/
+→ adb reverse
+→ PC UI dev server :8099
+→ same-origin proxy
+→ Gateway :9445
+→ DshAdapter
+→ DSH
+This is accepted for USB/local development.
+It is not the R9 production architecture.
+R9 must eliminate dependencies on:
+ADB
+USB
+npm run ui:dev
+port 8099 as a development server
+debug WebView settings
+for normal remote use.
+4. Production process architecture
+The accepted production stack is conceptually:
+scripts/remote-production.mjs
+        ↓
+resident production launcher
+        ↓
+Supervisor
+   ├── Gateway 127.0.0.1:9445
+   └── DSH     127.0.0.1:3081
+Operator interactive DSH:
+127.0.0.1:3080
+is separate and must never become a Supervisor target.
+Do not redesign this process lifecycle as part of R9 unless the transport design exposes an unavoidable conflict.
+R7 lifecycle is frozen.
+5. DSH environment
+Current relevant environment:
+OS:
+Windows 11 Home
+
+PowerShell:
+5.1
+
+Node:
+v24.20.0
+
+npm:
+11.19.0
+
+DSH package:
+@deepseek-ai/dsh@0.1.5-rc.2
+
+Operator DSH command:
+npx -y @deepseek-ai/dsh@0.1.5-rc.2 web
+
+DSH_HOME:
+D:\DSH-work-test\.dsh
+
+Project:
+D:\DSH-testing
+Do not make R9 depend unnecessarily on Unix-only semantics.
+Windows process/service behavior matters.
+6. Frozen Gateway HTTP contract
+Existing REST surface:
+GET  /api/v1/health
+
+GET  /api/v1/sessions
+
+GET  /api/v1/sessions/:id
+
+GET  /api/v1/sessions/:id/messages
+
+POST /api/v1/sessions/:id/messages
+
+POST /api/v1/sessions/:id/cancel
+
+POST /api/v1/sessions/:id/uploads
+
+POST /api/v1/auth/ws-ticket
+No:
+POST /api/v1/sessions
+exists.
+Session creation remains deferred.
+Do not invent one for R9.
+7. Frozen WebSocket contract
+WebSocket endpoint:
+/api/v1/events
+Existing flow:
+Phone Bearer
+→ POST /api/v1/auth/ws-ticket
+→ one-time short-lived WS ticket
+→ WebSocket URL
+→ hello
+→ replay
+→ replay_complete
+→ live events
+Critical security invariant:
+Phone Bearer MUST NOT appear in the WebSocket URL.
+Only the one-time WS ticket may be carried there.
+Reconnect must obtain:
+fresh ticket
+Ticket reuse is rejected.
+R9 transport security is additive.
+Do not replace application-layer Phone Bearer + WS-ticket authentication merely because a VPN, tunnel or TLS layer exists.
+8. Phone credential handling
+Current accepted model:
+Phone Access Token
+→ entered through credential UI
+→ sessionStorage
+Do not move the long-lived Phone token into:
+URL
+query string
+logs
+native Android preferences
+Android shared storage
+command line
+without a separately approved credential-storage redesign.
+R9 design may discuss a future secure-storage option, but must clearly label that as a separate contract change.
+9. Secret handling
+Never expose:
+Phone token
+WS ticket
+Authorization header
+DSH launch token
+dsh-auth cookie
+Do not read/copy/hash/parse:
+.credentials.yaml
+This prohibition also applies to:
+debug evidence
+design examples
+deployment scripts
+logs
+screenshots
+test reports
+Use placeholders only.
+10. Existing WebSocket/UI state model
+Frozen connection states:
+auth_required
+connecting
+connected
+reconnecting
+resync_required
+gateway_unavailable
+Frozen domain states:
+idle
+queued
+running
+waiting_input
+completed
+failed
+cancelled
+disconnected
+Do not add transport-specific UI states casually.
+For example:
+tailscale_connecting
+ssh_connecting
+vpn_offline
+should normally be mapped into the existing connection layer unless a new user-visible state is genuinely required.
+If Codex believes a state-model extension is necessary, propose it explicitly as an ADR; do not implement it.
+11. Session retention contract
+Current frozen semantics:
+GET /sessions
+=
+current DSH adapter enumeration
+UNION
+previously tracked Gateway sessions
+This is:
+Option A — KEEP UNION
+Do not reopen this decision in R9.
+Remote networking must not change session-retention semantics.
+12. Known non-blocking R8 limitations
+Do not use R9 as a reason to reopen these automatically.
+R8E_MESSAGE_IDENTITY_LIMITATION
+REST history does not provide a stable requestId/attemptId bridge sufficient for perfect transient correlation.
+Accepted strategy:
+authoritative REST replacement
++
+conservative transient suppression
+No guessed correlation.
+R8-WS-ERROR-CLASSIFICATION-NOTE
+A low-level WebSocket construction failure can still surface as:
+Gateway unavailable
+although diagnostic socket_construction_failed now exists.
+This is non-blocking.
+Live upload
+File input / Android DocumentsUI integration is accepted.
+Real upload was deliberately not performed during final human acceptance.
+The existing upload path remains authoritative.
+13. Android state
+Current Android artifact is a debug harness, not production APK.
+Current package:
+dev.dsh.remotedebug
+Current debug behavior includes:
+WebView debugging enabled
+localhost cleartext allowed
+cleartext denied elsewhere
+INTERNET permission only
+no JavaScript native bridge
+Android system file chooser
+This shell currently loads:
+http://localhost:8099/
+via ADB reverse.
+R9 must design a separate production posture.
+Do not simply ship this debug APK unchanged.
+14. Production Android design questions R9 must answer
+Codex must explicitly determine how production UI assets are delivered.
+Evaluate at minimum:
+A. Bundle UI inside APK
+   → WebView local assets
+   → secure API transport separately
+
+B. Serve UI remotely from the PC over secure HTTPS/tunnel
+
+C. Preserve a phone-local loopback endpoint through a secure tunnel
+
+D. another justified architecture
+The chosen architecture must account for:
+offline startup
+versioning
+CSP
+same-origin behavior
+WebSocket origin
+credential exposure
+certificate validation
+update mechanism
+failure UX
+Do not assume the current 8099 dev-server architecture should survive into production.
+15. CSP constraint
+Current accepted UI security posture uses:
+connect-src 'self'
+This is valuable.
+R9 should prefer designs that preserve a same-origin application model where practical.
+If the selected transport requires:
+UI origin != API origin
+then Codex must explicitly document:
+required CSP changes
+CORS implications
+WebSocket origin behavior
+credential implications
+attack-surface increase
+Do not simply propose:
+connect-src *
+or broad:
+ws:
+wss:
+permissions.
+16. Current network exposure
+Current Gateway production bind is:
+127.0.0.1:9445
+This is frozen through R8.
+R9 design must start from the assumption:
+Gateway is NOT currently LAN-exposed.
+No existing:
+0.0.0.0 bind
+LAN firewall opening
+public port forwarding
+TLS listener
+Tailscale listener
+SSH tunnel
+should be assumed.
+R7D explicitly finished with R9 untouched/not started. PHASE-R7D-REPORT.mdMD
+17. Core R9 security objective
+The phone may be on:
+cellular
+public Wi-Fi
+home Wi-Fi
+another private network
+R9 must provide:
+confidentiality
+integrity
+server/device authentication
+replay resistance where applicable
+minimal externally reachable surface
+safe reconnect
+bounded credential exposure
+before remote production access is accepted.
+18. Threat model to produce
+Codex must write a concrete threat model covering at least:
+passive network observer
+
+active MITM
+
+malicious device on same LAN
+
+internet port scanner
+
+stolen Phone Access Token
+
+stolen/lost phone
+
+stale WS ticket
+
+replayed WS ticket
+
+DNS manipulation
+
+malicious/compromised tunnel peer
+
+PC reboot
+
+phone network transition Wi-Fi ↔ cellular
+
+remote transport disconnect/reconnect
+
+Gateway unavailable
+
+DSH unavailable
+
+malicious uploaded filename/content metadata
+
+log/telemetry leakage
+For each:
+asset
+trust boundary
+attack
+existing mitigation
+R9 mitigation
+residual risk
+must be documented.
+19. Transport candidates
+At minimum compare:
+SSH tunneling / port forwarding
+
+Tailscale / WireGuard-style private overlay
+
+direct HTTPS/WSS with TLS termination
+Other options may be considered.
+Do not evaluate only on cryptography.
+Compare:
+Android usability
+Windows usability
+NAT traversal
+mobile reconnect
+background operation
+battery impact
+certificate/key management
+attack surface
+user setup burden
+recovery after reboot
+multi-device support
+revocation
+observability
+same-origin compatibility
+WebSocket behavior
+file upload behavior
+production maintenance
+20. SSH-specific questions
+If SSH is considered, answer:
+Who runs the SSH server?
+
+Windows OpenSSH Server or another implementation?
+
+How is host-key verification handled on Android?
+
+How does the phone establish the tunnel?
+
+Does the DSH Remote APK own the tunnel,
+or depend on another Android SSH application?
+
+How does the tunnel survive phone backgrounding?
+
+How are reconnects handled?
+
+Can the app continue to address localhost?
+
+What credentials are required?
+
+How are keys revoked?
+
+Does this create a second authentication system?
+Do not assume “SSH is secure” is sufficient architecture justification.
+21. Tailscale-specific questions
+If Tailscale is considered, answer:
+Is Gateway still loopback-only?
+
+If yes, what local bridge exposes it to the overlay?
+
+If no, exactly which Tailscale interface/address does it bind?
+
+Can ordinary LAN peers reach it?
+
+What ACLs are required?
+
+What happens if the tailnet account is compromised?
+
+How is device revocation handled?
+
+Does Android need the Tailscale app/VPN active?
+
+What happens on VPN disconnect?
+
+How does same-origin UI work?
+
+Is MagicDNS required?
+
+Does R9 depend on an external coordination service?
+Never propose:
+Gateway → 0.0.0.0:9445
+merely because Tailscale is present.
+22. Direct HTTPS/TLS questions
+If direct HTTPS/WSS is considered, answer:
+Where does TLS terminate?
+
+Gateway directly?
+reverse proxy?
+
+How is a trusted certificate obtained?
+
+Public DNS?
+private CA?
+ACME?
+
+Is a router port exposed?
+
+How is NAT handled?
+
+How are certificates renewed?
+
+What is the externally reachable attack surface?
+
+What rate limiting is required?
+
+What brute-force controls are required?
+
+What changes are required to CSP and Android networking?
+A direct internet listener should face a significantly higher acceptance bar than a private overlay/tunnel.
+23. Defense in depth
+Regardless of transport, preserve:
+transport authentication/security
++
+Phone Bearer
++
+one-time WS ticket
++
+Gateway route allowlist
++
+loopback/internal DSH boundary
+Do not collapse security to one layer.
+24. Gateway exposure principle
+Preferred R9 property:
+DSH itself remains loopback-only.
+The phone must never communicate directly with DSH 3081.
+All phone traffic continues through:
+Remote Gateway
+No design may expose:
+DSH 3081
+operator DSH 3080
+DSH launch-token endpoint
+to remote/mobile networks.
+25. Operator DSH remains out of scope
+127.0.0.1:3080
+is the operator's interactive DSH.
+R9 must never:
+route mobile traffic to it
+manage it
+restart it
+expose it remotely
+The remote production stack uses supervised DSH 3081.
+26. Service/reboot model
+R9 design must state what happens after Windows reboot.
+Answer:
+How does production Supervisor start?
+
+Does secure transport start automatically?
+
+What order is required?
+
+What happens if transport starts but Gateway is down?
+
+What happens if Gateway starts but secure transport is unavailable?
+
+How does the operator stop remote access intentionally?
+
+How is remote access disabled without killing the operator DSH?
+Do not implement Windows service/autostart yet.
+Design only.
+27. Phone bootstrap
+Design the first-time setup flow.
+It should answer:
+How does the phone discover/connect to the PC?
+
+What information must the user type/scan?
+
+What is transport-specific?
+
+What is Phone Access Token-specific?
+
+Can transport setup and app authentication remain separate?
+
+How does the user verify they reached the correct PC?
+
+What can be revoked independently?
+Prefer avoiding long secrets embedded in QR codes unless justified.
+28. Lost/stolen phone
+Design a revocation procedure.
+Must cover:
+revoke transport device/key
+
+revoke Phone Access Token
+
+invalidate outstanding WS tickets
+
+issue new phone credentials
+
+preserve unrelated operator access
+R9 must not require deleting the entire DSH profile just to revoke one phone.
+If current auth architecture cannot support this cleanly, identify the gap rather than silently redesigning R6.
+29. Multiple phones
+Do not implement multi-device support automatically.
+But the design must state whether the chosen architecture:
+supports one phone only
+or
+can later support multiple independently revocable devices
+Avoid a design that unnecessarily prevents future per-device revocation.
+30. Remote reconnect behavior
+Preserve R8 semantics.
+Example:
+transport interruption
+→ reconnecting
+→ transport restored
+→ authenticated health
+→ new WS ticket
+→ replay
+→ replay_complete
+→ connected
+No message duplication.
+Do not invent transport-layer replay of application messages.
+Gateway remains application authority.
+31. Network switching
+Explicitly design for Android:
+Wi-Fi → cellular
+cellular → Wi-Fi
+VPN reconnect
+temporary no-network
+phone sleep/wake
+State which layer owns reconnection:
+secure transport
+WebView/network
+EventClient
+Avoid multiple independent retry loops fighting one another.
+32. Production APK security posture
+R9 design must define a production APK distinct from debug harness.
+Expected direction:
+WebView debugging OFF
+
+cleartext remote traffic DENIED
+
+no adb dependency
+
+no localhost development server dependency
+
+no Android storage permission
+
+no JavaScriptInterface unless separately justified
+
+system file picker retained
+
+release signing strategy documented
+Do not create release keys during the design phase.
+33. UI scope
+R9 is primarily transport/deployment.
+Do not redesign the accepted chat UI.
+Permitted design-level additions may include:
+connection setup screen
+
+remote endpoint/profile display
+
+transport unavailable guidance
+
+revocation/re-pair flow
+Any new UI must map back to existing connection-state semantics where possible.
+34. File uploads
+Existing application route remains:
+POST /api/v1/sessions/:id/uploads
+R9 must make it work over the chosen secure transport.
+Do not invent a separate mobile upload service.
+Consider:
+large body behavior
+mobile interruption
+timeout
+retry semantics
+TLS/tunnel overhead
+No automatic upload retry unless existing contract explicitly allows it.
+35. Logging / diagnostics
+R9 design must specify safe observability for:
+transport connected/disconnected
+Gateway reachable/unreachable
+TLS/tunnel errors
+authentication failure category
+WS reconnect
+Logs must not contain:
+Phone token
+WS ticket
+Authorization
+private key
+DSH cookie
+launch token
+uploaded file content
+Prefer stable error codes over secret-bearing raw URLs.
+36. Existing production lifecycle must remain authoritative
+R7 established:
+ControlChannel
+READY
+STOPPING
+STOPPED
+FAILED
+and observed process/port reality.
+R9 transport lifecycle must not replace or bypass Supervisor lifecycle.
+If secure transport has its own process/service:
+its lifecycle must be modeled separately.
+Do not mark DSH/Gateway READY merely because the VPN/tunnel is connected.
+37. Configuration model
+R9 design should propose explicit configuration names.
+Do not reuse ambiguous generic names.
+For example, separate concepts such as:
+DSH_REMOTE_DSH_PORT = 3081
+
+Gateway internal port = 9445
+
+remote transport mode
+
+remote transport endpoint
+
+public/private hostname
+
+TLS certificate location
+
+overlay interface/address
+Exact new variable names are design output, not yet frozen.
+38. Compatibility requirement
+The chosen R9 architecture must preserve the ability to run:
+local desktop tests
+
+USB Android debug harness
+
+production remote mode
+without requiring developers to expose production networking.
+Development mode must remain safe and simple.
+39. Regression boundary
+R9 implementation later must preserve:
+R7 lifecycle
+R8 REST behavior
+R8 WS behavior
+R8 recovery
+R8 action convergence
+R8 security
+R8 Android interaction
+Current accepted regression baseline:
+1485 tests
+1476 pass
+0 fail
+9 skipped
+R5A PASS
+from R7D. PHASE-R7D-REPORT.mdMD
+Design should identify new R9 suites without changing this baseline yet.
+40. R9 design alternatives matrix
+Codex must produce a comparison table.
+Minimum candidates:
+SSH tunnel
+Tailscale/private overlay
+Direct HTTPS/WSS
+Minimum dimensions:
+security
+attack surface
+Android UX
+Windows setup
+NAT traversal
+reconnect quality
+same-origin compatibility
+credential management
+revocation
+multi-device potential
+maintenance
+external dependencies
+production complexity
+Do not produce a numeric score merely for convenience.
+Explain tradeoffs.
+41. Required architecture recommendation
+After comparison, Codex must propose:
+Preferred R9 architecture
+
+Fallback architecture
+For the preferred architecture provide:
+data-flow diagram
+trust boundaries
+bind addresses
+ports
+transport authentication
+application authentication
+WebSocket flow
+mobile startup flow
+PC startup flow
+failure/reconnect flow
+revocation flow
+production APK impact
+deployment prerequisites
+The recommendation is still a design proposal.
+Do not implement it.
+42. Required R9 phase decomposition
+Codex should propose a phase structure resembling:
+R9A — Architecture & Threat Model
+R9B — Secure Transport Substrate
+R9C — Gateway Exposure / Bridge
+R9D — Production Android Connectivity
+R9E — Remote Authentication / Revocation Validation
+R9F — Failure & Reconnect Acceptance
+R9G — Production Remote Acceptance
+Codex may rename/restructure these if justified.
+Each proposed phase must specify:
+scope
+inputs
+outputs
+security gate
+tests
+human acceptance
+stop gate
+rollback
+43. Migration / rollback
+Design must provide a rollback path.
+At any time before final R9 acceptance, operator must be able to return to:
+Gateway loopback-only
+DSH 3081 loopback-only
+R8 local/USB workflow
+without rebuilding the entire R7/R8 stack.
+R9 must be additive where practical.
+44. Explicit non-goals
+R9 design must not expand into:
+DSH model changes
+
+new agent protocol
+
+new session semantics
+
+new persistence format
+
+new journal format
+
+new message identity scheme
+
+game-development tooling
+
+unrelated DSH projects
+Do not touch:
+dsh-gpt-planner-bridge
+codex-dsh-bridge
+45. Files Codex should inspect first
+Before writing the architecture proposal, inspect the current repository.
+At minimum locate the current versions of:
+src/remote/production/production-config.mjs
+src/remote/production/supervisor.mjs
+src/remote/production/dsh-process.mjs
+
+scripts/remote-production.mjs
+
+Gateway HTTP routing
+Gateway WS routing
+Phone auth / WS-ticket implementation
+
+src/remote/ui/api/*
+src/remote/ui/ws/*
+src/remote/ui/recovery/*
+src/remote/ui/components/*
+android/*
+tests/remote/*
+docs/remote-mobile/*
+Do not assume file contents from old reports.
+Reports describe accepted behavior; source determines current implementation detail.
+46. Report precedence
+If historical documents disagree:
+latest accepted phase report
+>
+older phase report
+>
+stale runtime state
+Important examples:
+3080 = operator DSH
+
+3081 = supervised production DSH
+
+3181 = historical acceptance override only
+R7D is authoritative on this point. PHASE-R7D-REPORT.mdMD
+47. Required Codex deliverables
+Produce design documentation only.
+Required:
+PHASE-R9A-DESIGN-REPORT.md
+
+docs/remote-mobile/R9-THREAT-MODEL.md
+
+docs/remote-mobile/R9-TRANSPORT-ADR.md
+
+docs/remote-mobile/R9-DEPLOYMENT-ARCHITECTURE.md
+
+docs/remote-mobile/R9-IMPLEMENTATION-PHASE-PLAN.md
+If repository conventions indicate better locations, preserve the project convention and state the actual paths.
+48. PHASE-R9A-DESIGN-REPORT required questions
+The report must answer:
+What exact problem is R9 solving?
+
+What remains loopback-only?
+
+Does DSH 3081 remain completely unexposed remotely?
+
+Does Gateway remain loopback-only?
+If not, why is changing that necessary?
+
+Which transport options were evaluated?
+
+What is the preferred architecture?
+
+What is the fallback?
+
+Why was the preferred transport selected?
+
+How is MITM prevented?
+
+How is the correct PC authenticated?
+
+How is the phone/device authenticated?
+
+How does Phone Bearer remain protected?
+
+How are WS tickets transported?
+
+How does Android reconnect after network changes?
+
+How does the design behave after PC reboot?
+
+How does the operator intentionally disable remote access?
+
+How is a lost phone revoked?
+
+Does the design support future independent device revocation?
+
+How are UI assets delivered in production?
+
+Does the design preserve same-origin behavior?
+
+If not, what CSP/CORS changes would be required?
+
+What production APK changes will eventually be required?
+
+What Windows prerequisites are required?
+
+What external services/accounts are required?
+
+What new attack surface is introduced?
+
+What failure modes remain?
+
+What are the R9 implementation phases?
+
+What are the rollback conditions?
+
+Which R7/R8 contracts remain frozen?
+
+Were any source/runtime/network changes made?
+
+Expected:
+NO.
+49. Design acceptance criteria
+R9 design is acceptable only if it provides:
+complete threat model
+
+at least three transport alternatives
+
+explicit preferred + fallback design
+
+full trust-boundary diagram
+
+explicit port/bind model
+
+phone bootstrap model
+
+revocation model
+
+Android production model
+
+PC production model
+
+reconnect/failure model
+
+same-origin/CSP analysis
+
+implementation phase breakdown
+
+test strategy
+
+rollback plan
+
+no implementation changes
+50. Codex stop gate
+Success:
+R9A DESIGN COMPLETE
+
+R9 ARCHITECTURE PROPOSED
+
+NO R9 IMPLEMENTATION STARTED
+
+AWAITING HUMAN REVIEW
+
+OWNERSHIP HANDOFF BACK TO DSH PENDING HUMAN ACCEPTANCE
+
+STOPPING HERE.
+Failure / unresolved architectural choice:
+R9A DESIGN BLOCKED
+
+DOCUMENT THE UNRESOLVED DECISION
+
+NO IMPLEMENTATION
+
+STOPPING HERE.
+Always:
+DO NOT IMPLEMENT R9
+
+DO NOT INSTALL SSH
+
+DO NOT INSTALL TAILSCALE
+
+DO NOT CHANGE FIREWALL
+
+DO NOT BIND 0.0.0.0
+
+DO NOT ENABLE LAN ACCESS
+
+DO NOT CREATE TLS KEYS/CERTIFICATES
+
+DO NOT BUILD PRODUCTION APK
+
+DO NOT MODIFY FROZEN R7/R8 CONTRACTS

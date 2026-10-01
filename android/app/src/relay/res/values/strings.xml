@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Harness Remote</string>
+    <string name="choose_file">Choose a file to upload</string>
+    <string name="unreachable">Cannot reach the relay UI.\n\n%1$s</string>
+</resources>

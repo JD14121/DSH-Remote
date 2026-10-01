@@ -1,0 +1,35 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/follow",
+    "transport": "WS /api/remote.mux (logical stream)",
+    "frame": "mux item whose value is a durable SessionEventEntry",
+    "note": "A durable event arriving on the live journal after the opening snapshot. Order relative to the assistant frames is significant and must be preserved.",
+    "fieldsRedactedOrReplaced": [
+      "sessionId replaced",
+      "message body replaced with synthetic text",
+      "source.rpcId replaced"
+    ]
+  },
+  "muxFrame": {
+    "type": "item",
+    "streamId": "s1",
+    "value": {
+      "type": "event",
+      "event": {
+        "type": "user/message",
+        "seq": 43,
+        "time": 1789800000200,
+        "data": {
+          "message": "synthetic follow-up user message",
+          "source": {
+            "kind": "user",
+            "rpcId": "client-message-id-fixture-2"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext is permitted ONLY to loopback.
+
+  The harness loads `http://localhost:8099`, which is plain HTTP, so cleartext must be allowed for
+  that host or the WebView refuses the load outright. Rather than leave
+  `usesCleartextTraffic="true"` as a blanket permission, this config narrows cleartext to
+  `localhost` and `127.0.0.1` and denies it everywhere else.
+
+  Consequence, and it is the point: this harness cannot be pointed at a remote cleartext origin by
+  accident. A remote build needs TLS, which is R9's problem — not something to solve by widening
+  this file.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>

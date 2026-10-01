@@ -1,0 +1,15 @@
+{
+  "_fixture": {
+    "kind": "hand-constructed",
+    "purpose": "Version observation input for DshVersionGuard and the version-guard test matrix."
+  },
+  "dsh": {
+    "name": "@deepseek-ai/dsh",
+    "version": "0.1.5-rc.2"
+  },
+  "authority": "127.0.0.1:3080",
+  "endpoints": {
+    "unary": "POST /api/<namespace>/<method>",
+    "stream": "WS /api/remote.mux"
+  }
+}

@@ -1,0 +1,99 @@
+/*
+ * Responsive rules.
+ *
+ * Breakpoints are fixed by the R8 contract and cannot be read from custom properties,
+ * so they are repeated here as literals — this is the one place they may appear.
+ *
+ *   360-479   mobile single-column
+ *   480-767   large mobile, still single-column
+ *   >=768     tablet: persistent session rail + chat
+ */
+
+/* Narrowest phones: tighten horizontal padding so the composer keeps usable width. */
+@media (max-width: 379px) {
+  .timeline {
+    padding: var(--space-s3);
+  }
+
+  .composer {
+    padding: var(--space-s3) var(--space-s2);
+  }
+
+  .top-bar {
+    padding-inline: var(--space-s3);
+  }
+
+  /* Keep the badge compact; its full state remains available through its accessible label. */
+  .connection-badge {
+    padding: 0 var(--space-s2);
+  }
+
+  .connection-badge__label {
+    font-size: var(--font-size-100);
+  }
+}
+
+/*
+ * R1.1: on phones the drawer is a full overlay and must not leave a useless content strip.
+ *
+ * Measured on a 360px device: the drawer rendered 300px wide, leaving a 60px sliver of chat —
+ * too narrow to read or tap, but wide enough to look like broken layout. It now covers all but a
+ * deliberate narrow edge, so the scrim's "tap to close" affordance is unambiguous.
+ *
+ * Tablet (>=768px) is untouched: the persistent rail still supplies the session list there.
+ */
+@media (max-width: 767px) {
+  .drawer {
+    width: calc(100vw - var(--space-s6));
+    max-width: none;
+  }
+}
+
+/* Large phones keep the single column but can breathe. */
+@media (min-width: 480px) and (max-width: 767px) {
+  .timeline {
+    padding: var(--space-s5);
+  }
+}
+
+/*
+ * Tablet: the session list becomes a persistent rail; the chat is capped so lines stay readable.
+ *
+ * R1.3.1: this condition MUST match layout.css exactly (width >= 768 AND height >= 600). If they
+ * disagree, a landscape phone would hide the rail in one file while the other still suppressed the
+ * overlay drawer and the menu button -- leaving no way to reach the session list at all.
+ */
+@media (min-width: 768px) and (min-height: 600px) {
+  .timeline {
+    padding: var(--space-s6);
+  }
+
+  .timeline__inner,
+  .composer__inner {
+    width: 100%;
+    max-width: var(--layout-content-max-width-tablet);
+    margin-inline: auto;
+  }
+
+  .composer-region {
+    padding-inline: var(--space-s6);
+  }
+
+  /* The rail supplies the session list, so the overlay trigger is pointless. */
+  .top-bar__menu {
+    display: none;
+  }
+}
+
+/* Never allow accidental horizontal page overflow. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+pre,
+table {
+  max-width: 100%;
+}

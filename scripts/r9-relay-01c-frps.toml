@@ -1,0 +1,39 @@
+# R9-RELAY-01C — frps fixture configuration (inside the container, loopback only).
+#
+# Only the surfaces this test needs are configured. Everything the taskbook lists as unnecessary is
+# left unconfigured, so frps does not create those listeners at all.
+
+bindAddr = "127.0.0.1"
+bindPort = 7100
+
+# The vhost listener the single approved HTTPS proxy needs.
+proxyBindAddr = "127.0.0.1"
+vhostHTTPSPort = 7443
+
+# Tunnel authentication: a fixture token loaded from a file, never a production credential.
+auth.method = "token"
+auth.token = "r9-fixture-token-not-production"
+
+# Transport TLS is mandatory for the tunnel.
+transport.tls.force = true
+
+# Unnecessary surfaces, all deliberately left unset so no listener exists:
+#   kcpBindPort          — KCP disabled (unset)
+#   quicBindPort         — QUIC disabled (unset)
+#   vhostHTTPPort        — plain HTTP vhost disabled (unset)
+#   tcpmuxHTTPConnectPort — TCP-multiplexing gateway disabled (unset)
+#   sshTunnelGateway.bindPort — SSH tunnel gateway disabled (unset)
+#   webServer.port       — dashboard/web server disabled (unset)
+#   subDomainHost        — subdomain wildcard service disabled (unset)
+#   allowPorts           — unused; admission is enforced by the NewProxy plugin instead
+
+log.to = "/fixture/log/frps.log"
+log.level = "info"
+detailedErrorsToClient = false
+
+# The NewProxy admission gate. This is the v0.71.0 mechanism; `serverPlugin` does not exist here.
+[[httpPlugins]]
+name = "r9-newproxy-policy"
+addr = "127.0.0.1:9100"
+path = "/cgi-bin/frp-newproxy"
+ops = ["NewProxy"]

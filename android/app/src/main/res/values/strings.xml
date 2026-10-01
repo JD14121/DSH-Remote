@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Harness Remote</string>
+    <string name="choose_file">Choose a file to upload</string>
+    <!--
+      Shown when the shell cannot be reached. Deliberately actionable: the usual cause is that
+      `adb reverse` is not in place, and saying so is more useful than "net::ERR_CONNECTION_REFUSED".
+    -->
+    <string name="unreachable">Cannot reach DSH Remote.\n\n%1$s\n\nTap anywhere here to retry loading.</string>
+</resources>

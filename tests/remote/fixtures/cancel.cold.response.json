@@ -1,0 +1,42 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/cancel",
+    "transport": "POST /api/session/cancel",
+    "note": "Cold-session case. `session/cancel` reads the in-process Agent registry only, so a session with no live Agent reports session/not-found. R1 §15 maps this to SESSION_COLD and must NOT report success and must NOT fall back to a process kill.",
+    "wireCode": "session/not-found",
+    "wireMessage": "session \"session-00000000-0000-0000-0000-000000000009\" not found (not attached)",
+    "expectedAdapterCode": "SESSION_COLD",
+    "request": {
+      "type": "client-request",
+      "rpcId": "fixture-cancel-cold-1",
+      "method": "session/cancel",
+      "payload": {
+        "args": {
+          "request": {
+            "sessionId": "session-00000000-0000-0000-0000-000000000009"
+          }
+        }
+      }
+    },
+    "fieldsRedactedOrReplaced": [
+      "sessionId replaced"
+    ]
+  },
+  "response": {
+    "type": "server-response",
+    "rpcId": "fixture-cancel-cold-1",
+    "result": {
+      "ok": false,
+      "error": {
+        "code": "session/not-found",
+        "message": "session \"session-00000000-0000-0000-0000-000000000009\" not found (not attached)",
+        "details": {
+          "sessionId": "session-00000000-0000-0000-0000-000000000009"
+        }
+      }
+    }
+  }
+}

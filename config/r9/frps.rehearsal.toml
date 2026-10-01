@@ -1,0 +1,36 @@
+# R9-RELAY-02 — frps LOCAL REHEARSAL config
+#
+# Validates that the PRODUCTION template parses and behaves, without creating any public listener.
+#
+# Differences from frps.production.toml, and only these:
+#   * bindAddr            0.0.0.0  -> 127.0.0.1   (loopback only; nothing is published)
+#   * bindPort            7000     -> 7100        (avoid colliding with anything on the host)
+#   * vhostHTTPSPort      443      -> 7443        (no privileged port, no public bind)
+#   * paths               /etc/... -> /fixture/... (inside the validation container)
+#
+# Everything else — the NewProxy plugin mechanism, the disabled surfaces, transport TLS enforcement
+# and the dedicated auth — is identical in shape to production.
+
+bindAddr = "127.0.0.1"
+bindPort = 7100
+proxyBindAddr = "127.0.0.1"
+vhostHTTPSPort = 7443
+
+auth.method = "token"
+# A clearly non-secret fixture value. It is NOT the production secret and is not used anywhere else.
+auth.token = "r9-fixture-token-not-production"
+
+transport.tls.force = true
+log.to = "/fixture/log/frps.rehearsal.log"
+log.level = "info"
+detailedErrorsToClient = false
+
+# Surfaces deliberately left unset, matching production: KCP, QUIC, vhostHTTPPort,
+# tcpmuxHTTPConnectPort, sshTunnelGateway, webServer, subDomainHost.
+
+# The proven v0.71.0 mechanism. NOT serverPlugin.
+[[httpPlugins]]
+name = "r9-newproxy-policy"
+addr = "127.0.0.1:9100"
+path = "/cgi-bin/frp-newproxy"
+ops = ["NewProxy"]

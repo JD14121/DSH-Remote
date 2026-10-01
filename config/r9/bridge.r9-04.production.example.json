@@ -1,0 +1,14 @@
+{
+  "listenHost": "127.0.0.1",
+  "listenPort": 9446,
+  "publicHostname": "relay.drm-jd.com",
+  "httpsCertPath": "C:\\ProgramData\\r9-relay\\tls\\https-server.crt",
+  "httpsKeyPath": "C:\\ProgramData\\r9-relay\\tls\\https-server.key",
+  "androidClientCaPath": "C:\\ProgramData\\r9-relay\\trust\\android-issuer\\android-issuer-ca.crt",
+  "enrolledIdentityFingerprints": [],
+  "uiRoot": "C:\\ProgramData\\r9-relay\\ui",
+  "uiManifestPath": "C:\\ProgramData\\r9-relay\\ui-manifest.json",
+  "gatewayUpstreamHost": "127.0.0.1",
+  "gatewayUpstreamPort": 9445,
+  "gatewayAllowedOrigins": ["https://relay.drm-jd.com"]
+}

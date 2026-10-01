@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DSH Remote — Android USB debug harness.
+
+  This is a DEVELOPMENT SHELL, not a product build. It wraps the local R8 UI in a WebView so the
+  same loopback stack can be driven from a real phone over `adb reverse`.
+
+  Security posture, deliberately minimal surface:
+
+  * `usesCleartextTraffic="true"` is required because the harness loads `http://localhost:8099`.
+    The accompanying network security config narrows cleartext to `localhost` and `127.0.0.1`
+    ONLY, so no other host may be reached in the clear. This is a debug harness for loopback; it
+    is not a template for a remote build (that is R9's problem, with TLS).
+  * No `android:exported="true"` on anything but the launcher activity, which Android 12+ requires.
+  * No location, storage, camera or network-state permissions are requested. The WebView needs no
+    permission to reach loopback, and the file chooser uses the system picker via
+    `ACTION_GET_CONTENT`, which grants access to the single chosen item without any permission.
+  * `INTERNET` is the only permission, and it is required for WebView traffic.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.dsh.remotedebug">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.DshRemote"
+        android:usesCleartextTraffic="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize|uiMode|density|fontScale"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

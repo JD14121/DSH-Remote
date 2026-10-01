@@ -1,0 +1,51 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/follow",
+    "transport": "WS /api/remote.mux (logical stream)",
+    "frame": "assistant-stream end (committed)",
+    "note": "`outcome.kind` is 'committed' when the durable event landed, 'abandoned' otherwise. The committed form names the durable event type and its seq.",
+    "fieldsRedactedOrReplaced": [
+      "attemptId replaced"
+    ]
+  },
+  "muxFrame": {
+    "type": "item",
+    "streamId": "s1",
+    "value": {
+      "type": "assistant-stream",
+      "frame": {
+        "type": "end",
+        "attemptId": "session-00000000-0000-0000-0000-000000000001:1",
+        "revision": 1,
+        "index": 5,
+        "outcome": {
+          "kind": "committed",
+          "eventType": "assistant/message",
+          "seq": 44
+        }
+      }
+    }
+  },
+  "abandonedVariant": {
+    "_note": "An attempt that produced no durable event.",
+    "muxFrame": {
+      "type": "item",
+      "streamId": "s1",
+      "value": {
+        "type": "assistant-stream",
+        "frame": {
+          "type": "end",
+          "attemptId": "session-00000000-0000-0000-0000-000000000001:1",
+          "revision": 1,
+          "index": 5,
+          "outcome": {
+            "kind": "abandoned"
+          }
+        }
+      }
+    }
+  }
+}

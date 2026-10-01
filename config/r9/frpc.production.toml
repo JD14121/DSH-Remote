@@ -1,0 +1,49 @@
+# R9-RELAY-02B — frpc PRODUCTION TEMPLATE (PC side)
+#
+# STATUS: TEMPLATE / NOT APPLIED.
+# frpc opens NO inbound listener: it only makes an outbound connection to the VPS control port.
+#
+# Placeholders supplied at deploy time (never committed):
+#   R9_VPS_HOST            the DigitalOcean Reserved IPv4 (deliberately not written here)
+#
+# frp version: v0.71.0, pinned and checksum-verified.
+# Every field below was checked against the pinned release's own example configuration
+# (conf/frpc_full_example.toml at tag v0.71.0) — notably `transport.tls.serverName` and
+# `auth.tokenSource`, both of which DO exist in this release.
+
+serverAddr = "R9_VPS_HOST"
+serverPort = 7000
+
+# ── Transport identity (FRP CONTROL CLIENT role) ─────────────────────────────
+transport.tls.enable = true
+# The dedicated FRP client leaf and its key. NOT the application HTTPS certificate, NOT the Android
+# identity.
+transport.tls.certFile = "D:\\r9-relay-pki\\frp\\public\\leaves\\frpc-client.crt"
+transport.tls.keyFile = "D:\\r9-relay-pki\\frp\\keys\\leaves\\frpc-client.key"
+# Trust anchor: the dedicated FRP SERVER CA only.
+transport.tls.trustedCaFile = "D:\\r9-relay-pki\\frp\\public\\server-ca\\server-ca.crt"
+# Pin the expected transport server identity, so a server presenting a valid-but-wrong certificate is
+# refused. This is the private logical transport identity, NOT relay.drm-jd.com: the public hostname
+# belongs to the opaque application TLS layer that frps only routes.
+transport.tls.serverName = "r9-frps-control.internal"
+
+# ── FRP application authentication (independent layer) ───────────────────────
+# Loaded from a protected file by the pinned release's own mechanism, so the secret never appears in
+# this template and no config rendering step is required.
+auth.method = "token"
+auth.tokenSource.type = "file"
+auth.tokenSource.file.path = "D:\\r9-relay-secrets\\frp\\app-auth-token"
+
+# ── Exactly ONE proxy ────────────────────────────────────────────────────────
+# The local target is the R9 BRIDGE on 127.0.0.1:9446. It must NEVER target 9445 (Gateway),
+# 3081 (supervised DSH) or 3080 (operator DSH), and it must not target an arbitrary local port.
+[[proxies]]
+name = "r9-relay-https"
+type = "https"
+localIP = "127.0.0.1"
+localPort = 9446
+customDomains = ["relay.drm-jd.com"]
+
+# No second proxy. No http/tcp/udp/stcp/xtcp/sudp proxy. No subdomain. No wildcard domain.
+# The VPS-side NewProxy admission policy enforces the same shape independently: a valid tunnel
+# identity is NOT authorization to register an arbitrary proxy.

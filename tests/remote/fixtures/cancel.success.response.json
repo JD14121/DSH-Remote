@@ -1,0 +1,35 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/cancel",
+    "transport": "POST /api/session/cancel",
+    "note": "Success case: the session has a live Agent, so the Host admits the cancellation.",
+    "request": {
+      "type": "client-request",
+      "rpcId": "fixture-cancel-1",
+      "method": "session/cancel",
+      "payload": {
+        "args": {
+          "request": {
+            "sessionId": "session-00000000-0000-0000-0000-000000000001"
+          }
+        }
+      }
+    },
+    "fieldsRedactedOrReplaced": [
+      "sessionId replaced"
+    ]
+  },
+  "response": {
+    "type": "server-response",
+    "rpcId": "fixture-cancel-1",
+    "result": {
+      "ok": true,
+      "value": {
+        "accepted": true
+      }
+    }
+  }
+}

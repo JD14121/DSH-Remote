@@ -1,0 +1,165 @@
+# R9-RELAY-03 — PROPOSED systemd units (Gate 3.4A follow-up)
+#
+# STATUS: PROPOSAL ONLY. NOT APPLIED to any VPS.
+#
+# These replace the Requires=+After= design in R9-FRP-VPS-DEPLOYMENT-AND-RUNBOOKS.md §3.
+# The rationale and the exact diff are in PHASE-R9-RELAY-03-PREDEPLOY-CLOSURE-REPORT.md.
+#
+# Files:
+#   r9-frp-admission.service     the NewProxy admission plugin          (loopback only)
+#   r9-frp-readiness.service     one-shot readiness gate
+#   r9-frp-watchdog.service      continuous fail-closed watchdog
+#   r9-frps.service              frps, gated on readiness and bound to admission
+#
+# Install:
+#   install -m 0644 r9-frp-*.service /etc/systemd/system/
+#   install -m 0755 r9-relay-03-readiness-probe.sh  /opt/r9-frp/bin/r9-admission-ready
+#   install -m 0755 r9-relay-03-admission-watchdog.sh /opt/r9-frp/bin/r9-admission-watchdog
+#   systemctl daemon-reload
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 1. The admission plugin. Must be listening on loopback before anything else.
+# ─────────────────────────────────────────────────────────────────────────────
+# /etc/systemd/system/r9-frp-admission.service
+[Unit]
+Description=R9 FRP NewProxy admission policy plugin (loopback only)
+After=network.target
+Before=r9-frp-readiness.service r9-frps.service
+
+[Service]
+Type=simple
+User=r9frp
+Group=r9frp
+ExecStart=/usr/bin/python3 /etc/r9-frp/admission/admission-plugin.py \
+          19100 /etc/r9-frp/admission/newproxy-policy.toml /var/log/r9-frp/plugin.log
+Restart=always
+RestartSec=2
+# Never give up restarting: an admission plugin that systemd abandons is an admission plugin that is
+# silently absent.
+StartLimitIntervalSec=0
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/r9-frp /var/lib/r9-frp
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+# The listener is 127.0.0.1:19100 and needs no network capability.
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. Readiness gate. A unit that is "active" only when the plugin actually answers.
+#    This makes readiness an observable state instead of an assumption, and gives
+#    both the watchdog (PartOf=) and frps (BindsTo=) a real anchor.
+# ─────────────────────────────────────────────────────────────────────────────
+# /etc/systemd/system/r9-frp-readiness.service
+[Unit]
+Description=R9 FRP admission readiness gate (fails if the plugin does not answer)
+After=r9-frp-admission.service
+BindsTo=r9-frp-admission.service
+PartOf=r9-frp-admission.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=r9frp
+Group=r9frp
+ExecStart=/opt/r9-frp/bin/r9-admission-ready
+TimeoutStartSec=60
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Fail-closed watchdog. Closes 443/7000 when admission control is lost.
+# ─────────────────────────────────────────────────────────────────────────────
+# /etc/systemd/system/r9-frp-watchdog.service
+[Unit]
+Description=R9 FRP admission watchdog (stops frps if the plugin stops answering)
+After=r9-frp-readiness.service
+Requires=r9-frp-readiness.service
+PartOf=r9-frp-admission.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/opt/r9-frp/bin/r9-admission-watchdog
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=0
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+# Needs to run systemctl stop r9-frps, so it talks to the systemd manager over D-Bus. It does NOT need
+# CAP_NET_BIND_SERVICE or any network capability for its own listener (it has none).
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. frps. Bound to admission + readiness, so losing admission control stops it.
+# ─────────────────────────────────────────────────────────────────────────────
+# /etc/systemd/system/r9-frps.service
+[Unit]
+Description=R9 FRP relay server (frps v0.71.0, anchor-bound)
+After=network.target r9-frp-readiness.service r9-frp-watchdog.service
+# BindsTo (not Requires): frps is stopped if the readiness gate OR the admission plugin goes away for
+# ANY reason — crash, manual stop, restart, or dependency failure. Requires= would leave frps running.
+BindsTo=r9-frp-admission.service r9-frp-readiness.service
+Requires=r9-frp-watchdog.service
+PartOf=r9-frp-admission.service
+
+[Service]
+Type=simple
+User=r9frp
+Group=r9frp
+# Re-assert readiness synchronously at every start, so a restart cannot slip past the gate.
+ExecStartPre=/opt/r9-frp/bin/r9-admission-ready
+ExecStart=/opt/r9-frp/bin/frps -c /etc/r9-frp/frps.toml
+Restart=always
+RestartSec=3
+StartLimitIntervalSec=0
+# If admission control is gone, frps must not be running at all.
+
+# Only the capability needed to bind TCP 443. Nothing broader.
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/r9-frp /var/lib/r9-frp
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

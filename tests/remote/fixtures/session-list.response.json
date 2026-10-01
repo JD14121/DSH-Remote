@@ -1,0 +1,70 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/list",
+    "transport": "POST /api/session/list",
+    "request": {
+      "type": "client-request",
+      "rpcId": "fixture-list-1",
+      "method": "session/list",
+      "payload": {
+        "args": {
+          "_request": {}
+        }
+      }
+    },
+    "fieldsRedactedOrReplaced": [
+      "every sessionId replaced with a deterministic fixture id",
+      "cwd replaced with a generic path",
+      "projections object reduced to a representative subset",
+      "updatedAt replaced with fixed epoch values",
+      "any subagent parentSessionId removed"
+    ]
+  },
+  "response": {
+    "type": "server-response",
+    "rpcId": "fixture-list-1",
+    "result": {
+      "ok": true,
+      "value": {
+        "items": [
+          {
+            "sessionId": "session-00000000-0000-0000-0000-000000000001",
+            "updatedAt": 1789800000000,
+            "running": true,
+            "blank": false,
+            "cwd": "D:\\workspace",
+            "projections": {
+              "sessionStats": {
+                "turns": 3,
+                "steps": 12
+              }
+            }
+          },
+          {
+            "sessionId": "session-00000000-0000-0000-0000-000000000002",
+            "updatedAt": 1789700000000,
+            "running": false,
+            "blank": false,
+            "cwd": "D:\\workspace",
+            "projections": {
+              "sessionStats": {
+                "turns": 1,
+                "steps": 4
+              }
+            }
+          },
+          {
+            "sessionId": "session-00000000-0000-0000-0000-000000000003",
+            "updatedAt": 1789600000000,
+            "running": false,
+            "blank": true,
+            "cwd": "D:\\workspace"
+          }
+        ]
+      }
+    }
+  }
+}

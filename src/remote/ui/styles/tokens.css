@@ -1,0 +1,133 @@
+/*
+ * Design tokens as CSS custom properties.
+ *
+ * GENERATED from design/design-tokens.json by scripts/generate-ui-tokens.mjs.
+ * Do not edit by hand: re-run the generator instead, so the UI cannot drift from the
+ * frozen design contract.
+ */
+
+:root {
+  /* colour */
+  --bg-primary: #141416;
+  --bg-secondary: #171719;
+  --surface-primary: #1A1A1C;
+  --surface-secondary: #252527;
+  --surface-hover: #303032;
+  --surface-sunken: #141416;
+  --surface-raised: #2C2C2E;
+  --text-primary: #F1F1F1;
+  --text-secondary: #B9BBC0;
+  --text-muted: #89898C;
+  --text-inverse: #141416;
+  --border-default: #343436;
+  --border-strong: #454547;
+  --border-subtle: #28282A;
+  --accent-primary: #4E83F4;
+  --accent-hover: #6D98F5;
+  --status-success: #3FB27F;
+  --status-warning: #D9A441;
+  --status-danger: #E5484D;
+  --status-info: #5B8DEF;
+  --message-user: #2A3B5C;
+  --message-assistant: #1A1F2A;
+  --message-system: #1E2430;
+  --overlay: rgba(8, 10, 14, 0.62);
+  --focus: #7BA4F5;
+
+  /* spacing */
+  --space-s1: 4px;
+  --space-s2: 8px;
+  --space-s3: 12px;
+  --space-s4: 16px;
+  --space-s5: 20px;
+  --space-s6: 24px;
+  --space-s7: 32px;
+  --space-s8: 40px;
+
+  /* radius */
+  --radius-r1: 8px;
+  --radius-r2: 12px;
+  --radius-r3: 16px;
+  --radius-r4: 20px;
+  --radius-pill: 999px;
+
+  /* typography */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, monospace;
+  --text-caption-size: 12px;
+  --text-caption-line: 16px;
+  --text-caption-weight: 400;
+  --text-body-small-size: 13px;
+  --text-body-small-line: 18px;
+  --text-body-small-weight: 400;
+  --text-body-size: 15px;
+  --text-body-line: 22px;
+  --text-body-weight: 400;
+  --text-body-strong-size: 15px;
+  --text-body-strong-line: 22px;
+  --text-body-strong-weight: 600;
+  --text-subtitle-size: 17px;
+  --text-subtitle-line: 24px;
+  --text-subtitle-weight: 600;
+  --text-title-size: 20px;
+  --text-title-line: 28px;
+  --text-title-weight: 600;
+  --text-display-small-size: 24px;
+  --text-display-small-line: 32px;
+  --text-display-small-weight: 700;
+  --text-code-size: 13px;
+  --text-code-line: 20px;
+  --text-code-weight: 400;
+
+  /* elevation (R8G) */
+  --elevation-none: none;
+  --elevation-raised: 0 1px 2px rgba(0, 0, 0, 0.32);
+  --elevation-overlay: 0 12px 32px rgba(0, 0, 0, 0.45);
+
+  /* touch targets */
+  --touch-min: 44px;
+  --touch-min-width: 44px;
+  --touch-min-height: 44px;
+  --touch-composer-send: 44px;
+  --touch-icon-button: 44px;
+  --touch-list-row: 56px;
+  --touch-code-copy-button: 44px;
+
+  /* message geometry */
+  --message-max-width: 85%;
+  --message-gap: 22px;
+  --message-padding: 14px;
+
+  /* layout */
+  --layout-top-bar-height: 56px;
+  --layout-composer-min-height: 56px;
+  --layout-composer-max-height-percent: 40px;
+  --layout-drawer-width: 300px;
+  --layout-tablet-rail-width: 300px;
+  --layout-banner-height: 40px;
+  --layout-content-max-width-tablet: 720px;
+
+  /* motion */
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 260ms;
+
+  /* accessibility */
+  --a11y-min-contrast-normal-text: 4.5;
+  --a11y-min-contrast-large-text: 3;
+  --a11y-focus-ring-width: 2;
+  --a11y-focus-ring-offset: 2;
+
+  /* z-index layers — no component may invent a higher value */
+  --z-banner: 10;
+  --z-composer: 20;
+  --z-drawer: 40;
+  --z-dialog: 60;
+  --z-toast: 80;
+
+  /* breakpoints (informational — media queries cannot read custom properties) */
+  --bp-mobile-small: 360px;
+  --bp-mobile-primary: 390px;
+  --bp-mobile-large: 430px;
+  --bp-tablet: 768px;
+}

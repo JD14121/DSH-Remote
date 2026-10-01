@@ -1,0 +1,62 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/follow",
+    "transport": "WS /api/remote.mux (logical stream)",
+    "frame": "assistant-stream chunk",
+    "note": "CRITICAL: `chunk` is an OPAQUE JsonValue owned by the LLM adapter. R1 must never parse it into a token schema, never assume it is a string, and never reorder or merge it. The two chunk fixtures below are shape-different on purpose, to prove the adapter treats both identically.",
+    "fieldsRedactedOrReplaced": [
+      "attemptId replaced",
+      "chunk payloads replaced with synthetic shapes"
+    ]
+  },
+  "muxFrame": {
+    "type": "item",
+    "streamId": "s1",
+    "value": {
+      "type": "assistant-stream",
+      "frame": {
+        "type": "chunk",
+        "attemptId": "session-00000000-0000-0000-0000-000000000001:1",
+        "revision": 1,
+        "index": 3,
+        "time": 1789800000300,
+        "chunk": {
+          "synthetic": "opaque-chunk-shape-a",
+          "nested": {
+            "arbitrary": [
+              1,
+              2,
+              3
+            ]
+          }
+        }
+      }
+    }
+  },
+  "shapeBVariant": {
+    "_note": "A deliberately different opaque shape. The adapter must pass it through unchanged and must not require a string.",
+    "muxFrame": {
+      "type": "item",
+      "streamId": "s1",
+      "value": {
+        "type": "assistant-stream",
+        "frame": {
+          "type": "chunk",
+          "attemptId": "session-00000000-0000-0000-0000-000000000001:1",
+          "revision": 1,
+          "index": 4,
+          "time": 1789800000350,
+          "chunk": [
+            "array-shaped",
+            {
+              "not": "a token object"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,190 @@
+/*
+ * Layout: the shell, its regions, the banner slot and the rail/drawer axis.
+ *
+ * Mobile (<768px): one chat column; the session list is an overlay drawer.
+ * Tablet (>=768px): the SAME session list renders as a persistent rail beside the chat.
+ * Only the layout changes — component hierarchy and state semantics are identical.
+ */
+
+/*
+ * The mount point must fill the viewport.
+ *
+ * `.app-shell` is `height: 100%`, but a percentage height resolves against its PARENT. Without
+ * this rule `#app` was auto-height, so the shell collapsed to its content and the page showed a
+ * dead band below it. `100dvh` is preferred over `100vh` so the mobile browser chrome does not
+ * push the composer off-screen; `100vh` is kept first as the fallback for older engines.
+ */
+#app {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.app-shell {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-primary);
+}
+
+/* The chat column. Always present, in both breakpoints. */
+.app-shell__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.app-shell__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Banner slot: sits directly under the top bar so history is never pushed off screen. */
+.app-shell__banners:empty {
+  display: none;
+}
+
+.app-shell__drawer-host {
+  display: contents;
+}
+
+/*
+ * Tablet rail: the same list, laid out persistently.
+ *
+ * R1.3.1: the persistent rail requires sufficient WIDTH **and** HEIGHT.
+ *
+ * Width alone misclassified a phone held in landscape: a real HONOR FNE-AN00 is 770x330 CSS in
+ * landscape, which crossed the 768px width breakpoint and was handed the desktop two-pane shell.
+ * The rail then took 300px of 770px (39% of the width) and left only 196px of vertical chat --
+ * roughly one and a half messages -- in a viewport that has no height to spare for a persistent
+ * list. A 330px-tall viewport is not a tablet however wide it is.
+ *
+ * The height condition is deliberately BELOW the shortest tablet (a 1024px-tall iPad in landscape
+ * is still 768 tall) so genuine tablets are unaffected, while a landscape phone falls back to the
+ * phone shell with its overlay drawer.
+ *
+ * This is the same condition in responsive.css; the two must stay in step.
+ */
+.app-shell__rail {
+  display: none;
+}
+
+@media (min-width: 768px) and (min-height: 600px) {
+  .app-shell__rail {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    width: var(--layout-tablet-rail-width);
+    min-height: 0;
+    /* R8G polish: a subtle boundary plus the rail's own surface tone separates it from the chat
+       without a hard divider line running the full height. */
+    border-right: 1px solid var(--border-subtle);
+    background: var(--bg-secondary);
+  }
+
+  /* The overlay drawer is redundant once the rail is persistent. */
+  .app-shell__drawer-host {
+    display: none;
+  }
+}
+
+/* Timeline ------------------------------------------------------------------ */
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--message-gap);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-s4);
+  /* R8G polish: the timeline is a recessed well so the composer seat reads as raised above it.
+     The two surfaces now differ, which is what removes the "one flat colour" impression. */
+  background: var(--surface-sunken);
+}
+
+.timeline__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--message-gap);
+}
+
+/* Composer region ----------------------------------------------------------- */
+
+.composer-region {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-primary);
+}
+
+/* Drawer -------------------------------------------------------------------- */
+
+.drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  z-index: var(--z-drawer);
+}
+
+.drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--layout-drawer-width);
+  max-width: 88vw;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-default);
+  /* R8G polish: the overlay floats above the scrim, so it earns the second elevation step. */
+  box-shadow: var(--elevation-overlay);
+  z-index: var(--z-drawer);
+  transform: translateX(0);
+  transition: transform var(--motion-base) ease;
+}
+
+.drawer[data-state='closed'] {
+  transform: translateX(-100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer {
+    transition: none;
+  }
+  .drawer[data-state='closed'] {
+    transform: none;
+    display: none;
+  }
+}
+
+.dialog-scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-s5);
+  z-index: var(--z-dialog);
+}
+
+.toast-region {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s2);
+  padding: calc(env(safe-area-inset-top, 0px) + var(--space-s3)) var(--space-s4) var(--space-s4);
+  pointer-events: none;
+  z-index: var(--z-toast);
+}

@@ -1,0 +1,56 @@
+{
+  "_fixture": {
+    "kind": "real-wire-derived",
+    "captured": "2026-09-19",
+    "observedDshVersion": "0.1.5-rc.2",
+    "endpoint": "session/prompt",
+    "transport": "POST /api/session/prompt",
+    "note": "The request branch demonstrates the client_message_id -> requestId identity that R1 §10 requires.",
+    "request": {
+      "type": "client-request",
+      "rpcId": "fixture-prompt-1",
+      "method": "session/prompt",
+      "payload": {
+        "args": {
+          "request": {
+            "sessionId": "session-00000000-0000-0000-0000-000000000001",
+            "requestId": "client-message-id-fixture-1",
+            "mode": "queue",
+            "content": [
+              {
+                "type": "text",
+                "text": "synthetic prompt text"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "fieldsRedactedOrReplaced": [
+      "sessionId replaced",
+      "requestId replaced with a synthetic client id",
+      "prompt text replaced with synthetic text"
+    ]
+  },
+  "response": {
+    "type": "server-response",
+    "rpcId": "fixture-prompt-1",
+    "result": {
+      "ok": true,
+      "value": {
+        "accepted": true
+      }
+    }
+  },
+  "duplicateResponse": {
+    "_note": "A repeat of the same requestId. DSH returns the original acceptance and inserts no second message.",
+    "type": "server-response",
+    "rpcId": "fixture-prompt-2",
+    "result": {
+      "ok": true,
+      "value": {
+        "accepted": true
+      }
+    }
+  }
+}

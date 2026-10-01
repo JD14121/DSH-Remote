@@ -1,0 +1,95 @@
+# R9-RELAY-02B — frps PRODUCTION TEMPLATE (VPS side)
+#
+# STATUS: TEMPLATE / NOT APPLIED. This file is NOT deployed and NOT launched.
+#
+# It binds 0.0.0.0 because that is the eventual VPS bind semantics for the public vhost and control
+# ports. Running it as-is in any phase that has not been explicitly authorized to create public
+# exposure is forbidden. R9-RELAY-02B does not start it.
+#
+# Local rehearsal uses config/r9/frps.rehearsal.toml, which is loopback-only. Do not weaken that file
+# to make a local test pass, and do not add 0.0.0.0 to the rehearsal file.
+#
+# frp version: v0.71.0, pinned and checksum-verified. Do not silently upgrade: the NewProxy admission
+# behaviour was proven against this exact release.
+#
+# Every field below was checked against the pinned release's own example configuration
+# (conf/frps_full_example.toml at tag v0.71.0), not from memory or an older version.
+
+# ── Public control / work transport ──────────────────────────────────────────
+# Publicly reachable in the future exposure phase. Usable only with mandatory transport mTLS AND the
+# dedicated application auth secret. Network reachability is NOT privacy.
+#
+# BOUND TO THE VPS ANCHOR IP — approved in R9-RELAY-03 Gate 3.4A.
+# DigitalOcean directs that services reachable through a Reserved IP be bound to the anchor IP, so that
+# the Droplet's own public IPv4 cannot be used to BYPASS the Reserved IP. Binding an explicit IPv4 also
+# eliminates the IPv6 wildcard listener that "0.0.0.0" creates — which matters here because the host
+# firewall is default-ACCEPT and would not absorb that exposure.
+#
+# There is deliberately NO fallback to a wildcard address. If the Reserved IPv4 cannot reach an
+# anchor-bound frps, the phase STOPS (DNS stays unpublished, 443/7000 are closed) and any fix is
+# re-submitted for human approval. See the VPS deployment runbook.
+bindAddr = "10.15.0.5"
+bindPort = 7000
+
+# ── Public HTTPS vhost (SNI routing / passthrough) ───────────────────────────
+# frps routes opaque application TLS by SNI. It does NOT terminate application TLS, so the browser
+# application plaintext and the relay.drm-jd.com private key never exist on the VPS.
+# Also bound to the anchor IP; proxyBindAddr defaults to bindAddr when unset, but it is stated
+# explicitly so the intent is auditable.
+proxyBindAddr = "10.15.0.5"
+vhostHTTPSPort = 443
+
+# ── Transport identity (FRP CONTROL SERVER role) ─────────────────────────────
+# Mandatory transport TLS, presenting the dedicated FRP server leaf and requiring a client
+# certificate chaining to the dedicated FRP CLIENT CA. This is a different trust domain from both the
+# application HTTPS identity and the future Android client identity.
+transport.tls.force = true
+transport.tls.certFile = "/etc/r9-frp/pki/frps-server.crt"
+transport.tls.keyFile = "/etc/r9-frp/pki/frps-server.key"
+transport.tls.trustedCaFile = "/etc/r9-frp/pki/frpc-client-ca.crt"
+
+# ── FRP application authentication (independent layer) ───────────────────────
+# A dedicated 256-bit secret, separate from every TLS key, the Phone Bearer, and the DNS credential.
+# v0.71.0 supports loading it from a file, so the secret never appears in this committed template and
+# no config rendering step is needed.
+auth.method = "token"
+auth.tokenSource.type = "file"
+auth.tokenSource.file.path = "/etc/r9-frp/secrets/app-auth-token"
+
+# ── Logging ──────────────────────────────────────────────────────────────────
+# All top-level keys must appear BEFORE the first [[table]] header: in TOML a key after a table header
+# belongs to that table. An earlier draft got this wrong: the file parsed while frps silently ignored
+# the settings.
+log.to = "/var/log/r9-frp/frps.log"
+log.level = "info"
+log.maxDays = 7
+# Never send detailed internal errors to clients on a public control port.
+detailedErrorsToClient = false
+
+# ── Resource limits (fields that exist in v0.71.0) ───────────────────────────
+# One proxy with a small connection pool; exactly one client and one HTTPS proxy are expected.
+transport.maxPoolCount = 5
+transport.heartbeatTimeout = 90
+
+# ── NewProxy admission (default deny, fail closed) ───────────────────────────
+# The proven v0.71.0 mechanism. `serverPlugin` does NOT exist in v0.71.0 and must never be reintroduced.
+# The plugin listens on LOOPBACK ONLY on the VPS and is never reachable from the network.
+[[httpPlugins]]
+name = "r9-newproxy-policy"
+addr = "127.0.0.1:19100"
+path = "/cgi-bin/frp-newproxy"
+ops = ["NewProxy"]
+
+# ── Surfaces deliberately NOT configured (so no listener exists) ─────────────
+#   kcpBindPort                KCP disabled (unset)
+#   quicBindPort               QUIC disabled (unset)
+#   vhostHTTPPort              plain HTTP vhost disabled (unset) — no port 80
+#   tcpmuxHTTPConnectPort      TCP multiplexing gateway disabled (unset)
+#   sshTunnelGateway.bindPort  SSH tunnel gateway disabled (unset) — no port 22
+#   webServer.port             dashboard / web admin disabled (unset)
+#   subDomainHost              subdomain wildcard service disabled (unset)
+#   enablePrometheus           metrics disabled (unset)
+#   allowPorts                 unused; authorization is enforced by the NewProxy plugin
+#   visitor / STCP / XTCP / SUDP exposure — not configured
+#
+# No UDP listener, no extra TCP proxy port, no wildcard listener, no IPv6/dual-stack wildcard bind.

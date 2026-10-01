@@ -1,0 +1,83 @@
+# R9-RELAY-02B — NewProxy admission policy (PRODUCTION)
+#
+# STATUS: the real policy referenced by frps.production.toml. Not a placeholder.
+#
+# Carries forward the policy PROVEN in R9-RELAY-01C (25/25 cases: the mandatory positive case plus
+# every fail-closed variant). Default DENY; exactly one proxy shape is admitted.
+#
+# Mechanism: frp v0.71.0 `[[httpPlugins]]` with ops = ["NewProxy"].
+# `serverPlugin` does NOT exist in v0.71.0 and must never be reintroduced.
+#
+# TOML ORDERING MATTERS: a key written after a `[[table]]` header belongs to THAT table. An earlier
+# revision placed `allowed_fields` and `must_be_empty` after `[[approved_proxies]]`, so they were
+# nested inside the proxy entry and the plugin's top-level lookup found nothing — the policy then
+# rejected every field as unexpected, including the approved proxy. Global policy keys therefore live
+# in an explicit `[policy]` table, and the proxy definition is last.
+
+[policy]
+policy_version = 1
+
+# Default DENY. The decision starts as reject and only becomes accept after EVERY field is checked.
+# A parse failure, an unknown operation, a missing field, or an unexpected field all leave it reject.
+default_decision = "deny"
+
+# Bounded input: an oversized plugin request is refused without being read into memory.
+max_body_bytes = 16384
+
+# The operation key frp actually sends is `op`. (An earlier draft assumed `operation` and rejected
+# every request, including the approved one — hence the mandatory positive-case requirement.)
+operation_key = "op"
+expected_operation = "NewProxy"
+
+# Fields that must be absent or empty. A non-empty value is a policy violation, not a detail.
+must_be_empty = ["subdomain", "group", "group_key", "locations"]
+
+# Any field present in the proxy definition that is NOT in this set is a rejection, not something to
+# ignore. This stops a valid tunnel identity from smuggling in group/group_key/locations/remote_port.
+# `user` is included because frp sends it as part of the plugin envelope; it is NOT an authorization
+# input.
+allowed_fields = [
+  "proxy_name", "proxy_type", "custom_domains", "subdomain", "group", "group_key",
+  "locations", "local_ip", "local_port", "use_encryption", "use_compression",
+  "transport", "metadatas", "annotations", "health_check", "load_balancer", "user",
+]
+
+# Denied proxy types, listed explicitly for auditability. Anything that is not `https` is denied.
+denied_proxy_types = ["http", "tcp", "udp", "stcp", "xtcp", "sudp"]
+
+[policy.failure_handling]
+# Proven in R9-RELAY-01C: none of these may cause a proxy to be registered.
+plugin_unavailable = "fail_closed"
+plugin_timeout = "fail_closed"
+plugin_invalid_json = "fail_closed"
+plugin_empty_body = "fail_closed"
+plugin_truncated_body = "fail_closed"
+plugin_http_error = "fail_closed"
+
+[policy.logging]
+# The plugin must never log the request body or any credential.
+log_request_body = false
+log_credentials = false
+log_decision = true
+log_reason = true
+
+[policy.lifecycle]
+# Fail-closed ordering: the plugin must be ready BEFORE frps accepts registrations. A restart policy
+# must not create a window in which NewProxy authorization is bypassed.
+require_plugin_ready_before_frps = true
+bind = "127.0.0.1:19100"
+path = "/cgi-bin/frp-newproxy"
+listener_is_public = false
+
+# ── The single approved proxy definition (must remain LAST) ──────────────────
+[[approved_proxies]]
+proxy_name = "r9-relay-https"
+proxy_type = "https"
+custom_domains = ["relay.drm-jd.com"]
+subdomain = ""
+group = ""
+group_key = ""
+locations = []
+remote_port = 0
+local_ip = "127.0.0.1"
+local_port = 9446
